@@ -1,0 +1,14 @@
+services:
+  localstack:
+    image: localstack/localstack:3.4.0
+    cpus: 1
+    expose:
+      - "4566"
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      - LOCALSTACK_HOST=127.0.0.1
+      - SERVICES=s3
+      - TEST_AWS_ACCOUNT_ID=000000000000
+      - EAGER_SERVICE_LOADING=1
+    restart: unless-stopped

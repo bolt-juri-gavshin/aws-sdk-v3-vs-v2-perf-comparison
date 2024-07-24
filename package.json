@@ -1,0 +1,16 @@
+{
+  "name": "aws-sdk-js-v3-s3-larger-response-streaming-repro",
+  "version": "1.0.0",
+  "description": "Repro for larger-response-streaming probelm in AWS-SDK v3",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.616.0"
+  },
+  "scripts": {
+    "setup": "npm install && docker-compose up -d",
+    "clean": "docker-compose down -v --remove-orphans",
+    "prepare-bucket": "AWS_ACCESS_KEY_ID=__fake__ AWS_SECRET_ACCESS_KEY=__fake__ aws --endpoint http://127.0.0.1:4566/ s3 rb s3://head-object-test-bucket --force",
+    "execute-script": "node src/main.js head-object-test-bucket 900",
+    "start": "npm run prepare-bucket; npm run execute-script"
+  }
+}
