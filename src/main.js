@@ -1,6 +1,8 @@
 const {S3} = require("@aws-sdk/client-s3");
 const {NodeHttpHandler} = require("@smithy/node-http-handler");
 
+const requestTimeout = 10000;
+const maxConcurrentStreams = 1;
 const s3 = new S3({
     region: "eu-central-1",
     endpoint: "http://127.0.0.1:4566/",

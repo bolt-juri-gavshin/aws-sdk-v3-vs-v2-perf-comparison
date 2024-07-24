@@ -4,13 +4,17 @@
   "description": "Repro for larger-response-streaming probelm in AWS-SDK v3",
   "license": "UNLICENSED",
   "dependencies": {
-    "@aws-sdk/client-s3": "3.617.0"
+    "@aws-sdk/client-s3": "3.617.0",
+    "aws-sdk": "2.1662.0",
+    "benchmark": "2.1.4"
   },
   "scripts": {
     "setup": "npm install && docker-compose up -d",
     "clean": "docker-compose down -v --remove-orphans",
-    "prepare-bucket": "AWS_ACCESS_KEY_ID=__fake__ AWS_SECRET_ACCESS_KEY=__fake__ aws --endpoint http://127.0.0.1:4566/ s3 rb s3://head-object-test-bucket --force",
-    "execute-script": "node src/main.js head-object-test-bucket 900",
-    "start": "npm run prepare-bucket; npm run execute-script"
+    "delete-bucket": "AWS_ACCESS_KEY_ID=__fake__ AWS_SECRET_ACCESS_KEY=__fake__ aws --endpoint http://127.0.0.1:4566/ --region eu-central-1 s3 rb s3://test-bucket --force",
+    "create-bucket": "AWS_ACCESS_KEY_ID=__fake__ AWS_SECRET_ACCESS_KEY=__fake__ aws --endpoint http://127.0.0.1:4566/ --region eu-central-1 s3 mb s3://test-bucket",
+    "fill-bucket": "AWS_ACCESS_KEY_ID=__fake__ AWS_SECRET_ACCESS_KEY=__fake__ aws --endpoint http://127.0.0.1:4566/ --region eu-central-1 s3 cp data/ s3://test-bucket/ --recursive",
+    "prepare-bucket": "npm run delete-bucket; npm run create-bucket && npm run fill-bucket",
+    "headObjectBenchmark": "npm run prepare-bucket && node src/headObjectBenchmark.js"
   }
 }
