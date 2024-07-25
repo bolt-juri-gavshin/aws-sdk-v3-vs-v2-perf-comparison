@@ -3,7 +3,7 @@ const { S3 } = require('@aws-sdk/client-s3');
 const Benchmark = require('benchmark');
 const {NodeHttpHandler, NodeHttp2Handler} = require("@smithy/node-http-handler");
 
-const NUM_ITERATIONS = 1;
+const NUM_ITERATIONS = 10;
 
 const options = {
     onStart() {
@@ -40,7 +40,10 @@ const s3v2Client = new AWS.S3({
     },
     s3ForcePathStyle: true,
     httpOptions: {
-        agent: require('http').globalAgent,
+        agent: new (require('http').Agent)({
+            keepAlive: true,
+            maxSockets: 200
+        }),
         connectTimeout: 1000,
         timeout: 10000
     }
@@ -56,12 +59,34 @@ const s3 = new S3({
     requestHandler: new NodeHttpHandler({
         connectionTimeout: 1000,
         requestTimeout: 10000,
-        httpAgent: require("http").globalAgent,
-        httpsAgent: require("https").globalAgent,
+        httpAgent: new (require('http').Agent)({
+            keepAlive: true,
+            maxSockets: 200
+        }),
+        httpsAgent: new (require('https').Agent)({
+            keepAlive: true,
+            maxSockets: 200
+        }),
     }),
 });
 
-const benchmark = () => new Benchmark.Suite(`Calling ${NUM_ITERATIONS} headObject requests in parallel`, options)
+const s3h2 = new S3({
+    region: "eu-central-1",
+    endpoint: "http://localhost:4566/",
+    credentials: {
+        accessKeyId: "__fake__",
+        secretAccessKey: "__fake__",
+    },
+    forcePathStyle: true,
+    requestHandler: new NodeHttp2Handler({
+        sessionTimeout: 10000,
+        requestTimeout: 10000,
+        disableConcurrentStreams: false,
+        maxConcurrentStreams: 1000
+    }),
+});
+
+new Benchmark.Suite(`Calling ${NUM_ITERATIONS} headObject requests in parallel`, options)
     .add(`sdk v2`, {
         defer: true,
         async: true,
@@ -78,22 +103,22 @@ const benchmark = () => new Benchmark.Suite(`Calling ${NUM_ITERATIONS} headObjec
             });
         },
     })
-    // .add(`sdk v3 http2`, {
-    //     defer: true,
-    //     async: true,
-    //     fn(deferred) {
-    //         const promises = [];
-    //         for (let i = 0; i < NUM_ITERATIONS; i++) {
-    //             promises.push(s3http2.headObject({
-    //                 Bucket: "test-bucket",
-    //                 Key: `test${i}.txt`,
-    //             }));
-    //         }
-    //         Promise.all(promises).then(() => {
-    //             deferred.resolve();
-    //         });
-    //     },
-    // })
+    .add(`sdk v3 http2`, {
+        defer: true,
+        async: true,
+        fn(deferred) {
+            const promises = [];
+            for (let i = 0; i < NUM_ITERATIONS; i++) {
+                promises.push(s3h2.headObject({
+                    Bucket: "test-bucket",
+                    Key: `test${i}.txt`,
+                }));
+            }
+            Promise.all(promises).then(() => {
+                deferred.resolve();
+            });
+        },
+    })
     .add(`sdk v3`, {
         defer: true,
         async: true,
@@ -111,6 +136,3 @@ const benchmark = () => new Benchmark.Suite(`Calling ${NUM_ITERATIONS} headObjec
         },
     })
     .run({ async: true });
-
-
-benchmark();
