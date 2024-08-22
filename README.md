@@ -1,4 +1,4 @@
-# Repository to reproduce problems with AWS-SDK V3 client-s3
+# Repository to reproduce performance degradation using AWS-SDK V3 client-s3
 ## NodeJS (v20.14.0)
 ```shell
 nvm install && nvm use
@@ -11,7 +11,7 @@ npm run setup
 
 ## Start (script to clean up localstack bucket and run main.js)
 ```shell
-npm run start
+npm run headObjectBenchmark
 ```
 
 ## Clean (remove localstack container)

@@ -4,7 +4,7 @@
   "description": "Repro for larger-response-streaming probelm in AWS-SDK v3",
   "license": "UNLICENSED",
   "dependencies": {
-    "@aws-sdk/client-s3": "3.617.0",
+    "@aws-sdk/client-s3": "3.635.0",
     "aws-sdk": "2.1662.0",
     "benchmark": "2.1.4"
   },
